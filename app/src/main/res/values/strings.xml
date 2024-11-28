@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">YoloV8Options</string>
+    <string-array name="model_array">
+        <item>n</item>
+        <item>s</item>
+        <item>500m</item>-->
+        <item>1g</item>
+    </string-array>
+    <string-array name="cpugpu_array">
+        <item>CPU</item>
+        <item>GPU</item>
+    </string-array>
+</resources>
