@@ -26,7 +26,9 @@ public class Yolov8Ncnn
     public native boolean setOutputWindow(Surface surface);
 
     // 加載動態連結庫
+    // static的話代表只會加載一次
     static {
+        // lib name需與CMakeFiles.txt中的lib name一致
         System.loadLibrary("yolov8ncnn");
     }
 }

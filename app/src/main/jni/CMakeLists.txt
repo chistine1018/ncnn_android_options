@@ -2,6 +2,8 @@ project(yolov8ncnn)
 
 cmake_minimum_required(VERSION 3.10)
 
+
+## 如果要使用seg 要使用4.6.0
 set(OpenCV_DIR ${CMAKE_SOURCE_DIR}/opencv-mobile-4.6.0-android/sdk/native/jni)
 #find_package(OpenCV REQUIRED)
 find_package(OpenCV REQUIRED core imgproc)

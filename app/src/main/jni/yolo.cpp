@@ -254,6 +254,7 @@ static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vecto
 static void generate_proposals(std::vector<GridAndStride> grid_strides, const ncnn::Mat& pred, float prob_threshold, std::vector<Object>& objects)
 {
     const int num_points = grid_strides.size();
+    // 這邊是類別，若換成自己訓練模型，可能需修改數量
     const int num_class = 80;
     const int reg_max_1 = 16;
 
@@ -481,6 +482,7 @@ int Yolo::detect(const cv::Mat& rgb, std::vector<Object>& objects, float prob_th
 
     in_pad.substract_mean_normalize(0, norm_vals);
 
+    // 這邊是模型輸出提取，若換成自己訓練模型，可能需修改提取名稱
     ncnn::Extractor ex = yolo.create_extractor();
 
     ex.input("images", in_pad);
@@ -550,6 +552,7 @@ int Yolo::detect(const cv::Mat& rgb, std::vector<Object>& objects, float prob_th
 
 int Yolo::draw(cv::Mat& rgb, const std::vector<Object>& objects)
 {
+    // 這邊是類別，若換成自己訓練模型，可能需修改內容
     static const char* class_names[] = {
             "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
             "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",

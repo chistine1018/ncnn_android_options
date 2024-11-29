@@ -325,6 +325,7 @@ int SCRFD::detect(const cv::Mat& rgb, std::vector<FaceObject>& faceobjects, floa
     const float norm_vals[3] = {1/128.f, 1/128.f, 1/128.f};
     in_pad.substract_mean_normalize(mean_vals, norm_vals);
 
+    // 這邊是類別，若換成自己訓練模型，可能需修改內容
     ncnn::Extractor ex = scrfd.create_extractor();
 
     ex.input("input.1", in_pad);

@@ -125,6 +125,7 @@ void MyNdkCamera::on_image_render(cv::Mat &rgb) const {
     {
         ncnn::MutexLockGuard g(lock);
 
+        // 如果模型是 face
         if (modelID >= 2) {
             if (g_scrfd) {
                 std::vector<FaceObject> faceobjects;
@@ -135,10 +136,11 @@ void MyNdkCamera::on_image_render(cv::Mat &rgb) const {
                 draw_unsupported(rgb);
             }
         } else {
+            // 如果模型是 seg
             if (g_yolo) {
                 std::vector<Object> objects;
                 g_yolo->detect(rgb, objects);
-//
+
                 g_yolo->draw(rgb, objects);
             } else {
                 draw_unsupported(rgb);
@@ -193,6 +195,7 @@ Java_com_asn_yolov8_options_Yolov8Ncnn_loadModel(JNIEnv *env, jobject thiz, jobj
 
     __android_log_print(ANDROID_LOG_DEBUG, "ncnn", "loadModel %p", mgr);
 
+    // 設置模型type
     const char *modeltypes[] =
             {
                     "n",

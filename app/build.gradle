@@ -39,6 +39,8 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    // Build C++ so
     externalNativeBuild {
         cmake {
             version "3.10.2"
