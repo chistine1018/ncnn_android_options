@@ -22,7 +22,7 @@ namespace cv {
 
 /** @brief Returns result of asynchronous operations
 
-Object has attached asynchronous state.
+ObjectSeg has attached asynchronous state.
 Assignment operator doesn't clone asynchronous state (it is shared between all instances).
 
 Result can be fetched via get() method only once.

@@ -12,6 +12,6 @@ set(ncnn_DIR ${CMAKE_SOURCE_DIR}/ncnn-20221128-android-vulkan/${ANDROID_ABI}/lib
 find_package(ncnn REQUIRED)
 
 # SHARE 動態連結庫
-add_library(yolov8ncnn SHARED yolov8ncnn.cpp yolo.cpp scrfd.cpp ndkcamera.cpp)
+add_library(yolov8ncnn SHARED yolov8ncnn.cpp yolo.cpp yolonormal.cpp scrfd.cpp ndkcamera.cpp )
 
 target_link_libraries(yolov8ncnn ncnn ${OpenCV_LIBS} camera2ndk mediandk)

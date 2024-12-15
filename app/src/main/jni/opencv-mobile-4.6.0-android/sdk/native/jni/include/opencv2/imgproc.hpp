@@ -182,9 +182,9 @@ location of points on the plane, building special graphs (such as NNG,RNG), and 
 
     @defgroup imgproc_hist Histograms
     @defgroup imgproc_shape Structural Analysis and Shape Descriptors
-    @defgroup imgproc_motion Motion Analysis and Object Tracking
+    @defgroup imgproc_motion Motion Analysis and ObjectSeg Tracking
     @defgroup imgproc_feature Feature Detection
-    @defgroup imgproc_object Object Detection
+    @defgroup imgproc_object ObjectSeg Detection
     @defgroup imgproc_segmentation Image Segmentation
     @defgroup imgproc_c C API
     @defgroup imgproc_hal Hardware Acceleration Layer

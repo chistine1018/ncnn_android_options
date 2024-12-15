@@ -637,7 +637,7 @@ namespace cv { namespace cuda { namespace device
         T thresh;
     };
 
-    // Function Object Adaptors
+    // Function ObjectSeg Adaptors
     template <typename Predicate> struct unary_negate : unary_function<typename Predicate::argument_type, bool>
     {
       explicit __host__ __device__ __forceinline__ unary_negate(const Predicate& p) : pred(p) {}

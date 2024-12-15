@@ -166,13 +166,13 @@ static void matmul(const std::vector<ncnn::Mat>& bottom_blobs, ncnn::Mat& top_bl
 
     delete op;
 }
-static float intersection_area(const Object& a, const Object& b)
+static float intersection_area(const ObjectSeg& a, const ObjectSeg& b)
 {
     cv::Rect_<float> inter = a.rect & b.rect;
     return inter.area();
 }
 
-static void qsort_descent_inplace(std::vector<Object>& faceobjects, int left, int right)
+static void qsort_descent_inplace(std::vector<ObjectSeg>& faceobjects, int left, int right)
 {
     int i = left;
     int j = right;
@@ -209,7 +209,7 @@ static void qsort_descent_inplace(std::vector<Object>& faceobjects, int left, in
     }
 }
 
-static void qsort_descent_inplace(std::vector<Object>& faceobjects)
+static void qsort_descent_inplace(std::vector<ObjectSeg>& faceobjects)
 {
     if (faceobjects.empty())
         return;
@@ -217,7 +217,7 @@ static void qsort_descent_inplace(std::vector<Object>& faceobjects)
     qsort_descent_inplace(faceobjects, 0, faceobjects.size() - 1);
 }
 
-static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vector<int>& picked, float nms_threshold)
+static void nms_sorted_bboxes(const std::vector<ObjectSeg>& faceobjects, std::vector<int>& picked, float nms_threshold)
 {
     picked.clear();
 
@@ -231,12 +231,12 @@ static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vecto
 
     for (int i = 0; i < n; i++)
     {
-        const Object& a = faceobjects[i];
+        const ObjectSeg& a = faceobjects[i];
 
         int keep = 1;
         for (int j = 0; j < (int)picked.size(); j++)
         {
-            const Object& b = faceobjects[picked[j]];
+            const ObjectSeg& b = faceobjects[picked[j]];
 
             // intersection over union
             float inter_area = intersection_area(a, b);
@@ -251,7 +251,7 @@ static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vecto
     }
 }
 
-static void generate_proposals(std::vector<GridAndStride> grid_strides, const ncnn::Mat& pred, float prob_threshold, std::vector<Object>& objects)
+static void generate_proposals(std::vector<GridAndStrideSeg> grid_strides, const ncnn::Mat& pred, float prob_threshold, std::vector<ObjectSeg>& objects)
 {
     const int num_points = grid_strides.size();
     // 這邊是類別，若換成自己訓練模型，可能需修改數量
@@ -320,7 +320,7 @@ static void generate_proposals(std::vector<GridAndStride> grid_strides, const nc
             float x1 = pb_cx + pred_ltrb[2];
             float y1 = pb_cy + pred_ltrb[3];
 
-            Object obj;
+            ObjectSeg obj;
             obj.rect.x = x0;
             obj.rect.y = y0;
             obj.rect.width = x1 - x0;
@@ -333,7 +333,7 @@ static void generate_proposals(std::vector<GridAndStride> grid_strides, const nc
         }
     }
 }
-static void generate_grids_and_stride(const int target_w, const int target_h, std::vector<int>& strides, std::vector<GridAndStride>& grid_strides)
+static void generate_grids_and_stride(const int target_w, const int target_h, std::vector<int>& strides, std::vector<GridAndStrideSeg>& grid_strides)
 {
     for (int i = 0; i < (int)strides.size(); i++)
     {
@@ -344,7 +344,7 @@ static void generate_grids_and_stride(const int target_w, const int target_h, st
         {
             for (int g0 = 0; g0 < num_grid_w; g0++)
             {
-                GridAndStride gs;
+                GridAndStrideSeg gs;
                 gs.grid0 = g0;
                 gs.grid1 = g1;
                 gs.stride = stride;
@@ -450,7 +450,7 @@ int Yolo::load(AAssetManager* mgr, const char* modeltype, int _target_size, cons
     return 0;
 }
 
-int Yolo::detect(const cv::Mat& rgb, std::vector<Object>& objects, float prob_threshold, float nms_threshold)
+int Yolo::detect(const cv::Mat& rgb, std::vector<ObjectSeg>& objects, float prob_threshold, float nms_threshold)
 {
     int width = rgb.cols;
     int height = rgb.rows;
@@ -494,11 +494,11 @@ int Yolo::detect(const cv::Mat& rgb, std::vector<Object>& objects, float prob_th
     ex.extract("output1", mask_proto);
 
     std::vector<int> strides = {8, 16, 32}; // might have stride=64
-    std::vector<GridAndStride> grid_strides;
+    std::vector<GridAndStrideSeg> grid_strides;
     generate_grids_and_stride(in_pad.w, in_pad.h, strides, grid_strides);
 
-    std::vector<Object> proposals;
-    std::vector<Object> objects8;
+    std::vector<ObjectSeg> proposals;
+    std::vector<ObjectSeg> objects8;
     generate_proposals(grid_strides, out, prob_threshold, objects8);
     proposals.insert(proposals.end(), objects8.begin(), objects8.end());
 
@@ -550,7 +550,7 @@ int Yolo::detect(const cv::Mat& rgb, std::vector<Object>& objects, float prob_th
     return 0;
 }
 
-int Yolo::draw(cv::Mat& rgb, const std::vector<Object>& objects)
+int Yolo::draw(cv::Mat& rgb, const std::vector<ObjectSeg>& objects)
 {
     // 這邊是類別，若換成自己訓練模型，可能需修改內容
     static const char* class_names[] = {
@@ -651,7 +651,7 @@ int Yolo::draw(cv::Mat& rgb, const std::vector<Object>& objects)
     int color_index = 0;
     for (size_t i = 0; i < objects.size(); i++)
     {
-        const Object& obj = objects[i];
+        const ObjectSeg& obj = objects[i];
         const unsigned char* color = colors[color_index % 80];
         color_index++;
 

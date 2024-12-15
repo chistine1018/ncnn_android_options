@@ -30,6 +30,7 @@
 #include "scrfd.h"
 
 #include "ndkcamera.h"
+#include "yolonormal.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -111,7 +112,8 @@ static int draw_fps(cv::Mat &rgb) {
 
 static SCRFD *g_scrfd = 0;
 static Yolo *g_yolo = 0;
-static int modelID=0;
+static YoloNormal *g_yolonormal = 0;
+static int modelID = 0;
 
 static ncnn::Mutex lock;
 
@@ -126,7 +128,7 @@ void MyNdkCamera::on_image_render(cv::Mat &rgb) const {
         ncnn::MutexLockGuard g(lock);
 
         // 如果模型是 face
-        if (modelID >= 2) {
+        if (modelID == 2 || modelID == 3) {
             if (g_scrfd) {
                 std::vector<FaceObject> faceobjects;
                 g_scrfd->detect(rgb, faceobjects);
@@ -135,10 +137,20 @@ void MyNdkCamera::on_image_render(cv::Mat &rgb) const {
             } else {
                 draw_unsupported(rgb);
             }
+
+        } else if (modelID == 4 || modelID == 5) {
+            if (g_yolonormal) {
+                std::vector<Object> objects;
+                g_yolonormal->detect(rgb, objects);
+
+                g_yolonormal->draw(rgb, objects);
+            } else {
+                draw_unsupported(rgb);
+            }
         } else {
             // 如果模型是 seg
             if (g_yolo) {
-                std::vector<Object> objects;
+                std::vector<ObjectSeg> objects;
                 g_yolo->detect(rgb, objects);
 
                 g_yolo->draw(rgb, objects);
@@ -176,6 +188,9 @@ JNIEXPORT void JNI_OnUnload(JavaVM *vm, void *reserved) {
         delete g_yolo;
         g_yolo = 0;
 
+        delete g_yolonormal;
+        g_yolonormal = 0;
+
 
     }
 
@@ -202,6 +217,8 @@ Java_com_asn_yolov8_options_Yolov8Ncnn_loadModel(JNIEnv *env, jobject thiz, jobj
                     "s",
                     "500m",
                     "1g",
+                    "n",
+                    "s",
             };
 
     const int target_sizes[] =
@@ -231,6 +248,7 @@ Java_com_asn_yolov8_options_Yolov8Ncnn_loadModel(JNIEnv *env, jobject thiz, jobj
     }
     target_size = target_sizes[(int) modelid];
     bool use_gpu = (int) cpugpu == 1;
+    target_size = 320;
 
     // reload
     {
@@ -242,19 +260,28 @@ Java_com_asn_yolov8_options_Yolov8Ncnn_loadModel(JNIEnv *env, jobject thiz, jobj
             g_scrfd = 0;
             delete g_yolo;
             g_yolo = 0;
+            delete g_yolonormal;
+            g_yolonormal = 0;
         } else {
-            if (modelid >= 2) {
+            if (modelid == 2 || modelid == 3) {
                 if (!g_scrfd)
                     g_scrfd = new SCRFD;
                 g_scrfd->load(mgr, modeltype, use_gpu);
                 __android_log_print(ANDROID_LOG_DEBUG, "ncnn", "face");
 
+            } else if (modelid == 4 || modelid == 5) {
+                if (!g_yolonormal)
+                    g_yolonormal = new YoloNormal;
+                g_yolonormal->load(mgr, modeltype, target_size, mean_vals[(int) 0],
+                                   norm_vals[(int) 0], use_gpu);
+                __android_log_print(ANDROID_LOG_DEBUG, "ncnn", "normal");
+
             } else {
 
                 if (!g_yolo)
                     g_yolo = new Yolo;
-                g_yolo->load(mgr, modeltype, target_size, mean_vals[(int) modelid],
-                             norm_vals[(int) modelid], use_gpu);
+                g_yolo->load(mgr, modeltype, target_size, mean_vals[(int) 0],
+                             norm_vals[(int) 0], use_gpu);
                 __android_log_print(ANDROID_LOG_DEBUG, "ncnn", "seg");
 
             }
