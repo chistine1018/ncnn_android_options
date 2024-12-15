@@ -33,13 +33,13 @@ static float sigmoid(float x)
 {
     return 1.0f / (1.0f + fast_exp(-x));
 }
-static float intersection_area(const Object& a, const Object& b)
+static float intersection_area(const ObjectNormal& a, const ObjectNormal& b)
 {
     cv::Rect_<float> inter = a.rect & b.rect;
     return inter.area();
 }
 
-static void qsort_descent_inplace(std::vector<Object>& faceobjects, int left, int right)
+static void qsort_descent_inplace(std::vector<ObjectNormal>& faceobjects, int left, int right)
 {
     int i = left;
     int j = right;
@@ -76,7 +76,7 @@ static void qsort_descent_inplace(std::vector<Object>& faceobjects, int left, in
     }
 }
 
-static void qsort_descent_inplace(std::vector<Object>& faceobjects)
+static void qsort_descent_inplace(std::vector<ObjectNormal>& faceobjects)
 {
     if (faceobjects.empty())
         return;
@@ -84,7 +84,7 @@ static void qsort_descent_inplace(std::vector<Object>& faceobjects)
     qsort_descent_inplace(faceobjects, 0, faceobjects.size() - 1);
 }
 
-static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vector<int>& picked, float nms_threshold)
+static void nms_sorted_bboxes(const std::vector<ObjectNormal>& faceobjects, std::vector<int>& picked, float nms_threshold)
 {
     picked.clear();
 
@@ -98,12 +98,12 @@ static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vecto
 
     for (int i = 0; i < n; i++)
     {
-        const Object& a = faceobjects[i];
+        const ObjectNormal& a = faceobjects[i];
 
         int keep = 1;
         for (int j = 0; j < (int)picked.size(); j++)
         {
-            const Object& b = faceobjects[picked[j]];
+            const ObjectNormal& b = faceobjects[picked[j]];
 
             // intersection over union
             float inter_area = intersection_area(a, b);
@@ -137,7 +137,7 @@ static void generate_grids_and_stride(const int target_w, const int target_h, st
         }
     }
 }
-static void generate_proposals(std::vector<GridAndStride> grid_strides, const ncnn::Mat& pred, float prob_threshold, std::vector<Object>& objects)
+static void generate_proposals(std::vector<GridAndStride> grid_strides, const ncnn::Mat& pred, float prob_threshold, std::vector<ObjectNormal>& objects)
 {
     const int num_points = grid_strides.size();
     const int num_class = 80;
@@ -205,7 +205,7 @@ static void generate_proposals(std::vector<GridAndStride> grid_strides, const nc
             float x1 = pb_cx + pred_ltrb[2];
             float y1 = pb_cy + pred_ltrb[3];
 
-            Object obj;
+            ObjectNormal obj;
             obj.rect.x = x0;
             obj.rect.y = y0;
             obj.rect.width = x1 - x0;
@@ -263,7 +263,7 @@ int YoloNormal::load(AAssetManager* mgr, const char* modeltype, int _target_size
     return 0;
 }
 
-int YoloNormal::detect(const cv::Mat& rgb, std::vector<Object>& objects, float prob_threshold, float nms_threshold)
+int YoloNormal::detect(const cv::Mat& rgb, std::vector<ObjectNormal>& objects, float prob_threshold, float nms_threshold)
 {
     int width = rgb.cols;
     int height = rgb.rows;
@@ -299,7 +299,7 @@ int YoloNormal::detect(const cv::Mat& rgb, std::vector<Object>& objects, float p
 
     ex.input("images", in_pad);
 
-    std::vector<Object> proposals;
+    std::vector<ObjectNormal> proposals;
 
     ncnn::Mat out;
     ex.extract("output0", out);
@@ -344,7 +344,7 @@ int YoloNormal::detect(const cv::Mat& rgb, std::vector<Object>& objects, float p
     // sort objects by area
     struct
     {
-        bool operator()(const Object& a, const Object& b) const
+        bool operator()(const ObjectNormal& a, const ObjectNormal& b) const
         {
             return a.rect.area() > b.rect.area();
         }
@@ -354,7 +354,7 @@ int YoloNormal::detect(const cv::Mat& rgb, std::vector<Object>& objects, float p
     return 0;
 }
 
-int YoloNormal::draw(cv::Mat& rgb, const std::vector<Object>& objects)
+int YoloNormal::draw(cv::Mat& rgb, const std::vector<ObjectNormal>& objects)
 {
     static const char* class_names[] = {
         "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
@@ -397,7 +397,7 @@ int YoloNormal::draw(cv::Mat& rgb, const std::vector<Object>& objects)
 
     for (size_t i = 0; i < objects.size(); i++)
     {
-        const Object& obj = objects[i];
+        const ObjectNormal& obj = objects[i];
 
 //         fprintf(stderr, "%d = %.5f at %.2f %.2f %.2f x %.2f\n", obj.label, obj.prob,
 //                 obj.rect.x, obj.rect.y, obj.rect.width, obj.rect.height);

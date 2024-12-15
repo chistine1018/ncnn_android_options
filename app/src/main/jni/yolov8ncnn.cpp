@@ -140,7 +140,7 @@ void MyNdkCamera::on_image_render(cv::Mat &rgb) const {
 
         } else if (modelID == 4 || modelID == 5) {
             if (g_yolonormal) {
-                std::vector<Object> objects;
+                std::vector<ObjectNormal> objects;
                 g_yolonormal->detect(rgb, objects);
 
                 g_yolonormal->draw(rgb, objects);
