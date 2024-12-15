@@ -7,6 +7,9 @@
         <item>face 1g</item>
         <item>normal n</item>
         <item>normal s</item>
+        <item>yolo pose lite</item>
+        <item>yolo pose full</item>
+        <item>yolo pose heavy</item>
 
     </string-array>
     <string-array name="cpugpu_array">

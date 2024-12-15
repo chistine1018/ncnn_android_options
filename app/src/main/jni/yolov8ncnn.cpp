@@ -31,6 +31,7 @@
 
 #include "ndkcamera.h"
 #include "yolonormal.h"
+#include "blazepose.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -113,6 +114,8 @@ static int draw_fps(cv::Mat &rgb) {
 static SCRFD *g_scrfd = 0;
 static Yolo *g_yolo = 0;
 static YoloNormal *g_yolonormal = 0;
+static BlazePose *g_blazepose = 0;
+
 static int modelID = 0;
 
 static ncnn::Mutex lock;
@@ -144,6 +147,15 @@ void MyNdkCamera::on_image_render(cv::Mat &rgb) const {
                 g_yolonormal->detect(rgb, objects);
 
                 g_yolonormal->draw(rgb, objects);
+            } else {
+                draw_unsupported(rgb);
+            }
+        } else if (modelID == 6 || modelID == 7) {
+            if (g_blazepose) {
+                std::vector<Object> faceobjects;
+                g_blazepose->detect(rgb, faceobjects);
+
+                g_blazepose->draw(rgb, faceobjects);
             } else {
                 draw_unsupported(rgb);
             }
@@ -191,6 +203,9 @@ JNIEXPORT void JNI_OnUnload(JavaVM *vm, void *reserved) {
         delete g_yolonormal;
         g_yolonormal = 0;
 
+        delete g_blazepose;
+        g_blazepose = 0;
+
 
     }
 
@@ -219,6 +234,9 @@ Java_com_asn_yolov8_options_Yolov8Ncnn_loadModel(JNIEnv *env, jobject thiz, jobj
                     "1g",
                     "n",
                     "s",
+                    "lite",
+                    "full",
+                    "heavy",
             };
 
     const int target_sizes[] =
@@ -262,6 +280,8 @@ Java_com_asn_yolov8_options_Yolov8Ncnn_loadModel(JNIEnv *env, jobject thiz, jobj
             g_yolo = 0;
             delete g_yolonormal;
             g_yolonormal = 0;
+            delete g_blazepose;
+            g_blazepose = 0;
         } else {
             if (modelid == 2 || modelid == 3) {
                 if (!g_scrfd)
@@ -275,6 +295,12 @@ Java_com_asn_yolov8_options_Yolov8Ncnn_loadModel(JNIEnv *env, jobject thiz, jobj
                 g_yolonormal->load(mgr, modeltype, target_size, mean_vals[(int) 0],
                                    norm_vals[(int) 0], use_gpu);
                 __android_log_print(ANDROID_LOG_DEBUG, "ncnn", "normal");
+
+            } else if (modelid == 6 || modelid == 7) {
+                if (!g_blazepose)
+                    g_blazepose = new BlazePose;
+                g_blazepose->load(mgr, modeltype, use_gpu);
+                __android_log_print(ANDROID_LOG_DEBUG, "ncnn", "yolopose");
 
             } else {
 
