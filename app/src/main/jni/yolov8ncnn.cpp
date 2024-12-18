@@ -150,7 +150,7 @@ void MyNdkCamera::on_image_render(cv::Mat &rgb) const {
             } else {
                 draw_unsupported(rgb);
             }
-        } else if (modelID == 6 || modelID == 7) {
+        } else if (modelID == 6 || modelID == 7 || modelID == 8) {
             if (g_blazepose) {
                 std::vector<Object> faceobjects;
                 g_blazepose->detect(rgb, faceobjects);
@@ -217,7 +217,7 @@ JNIEXPORT void JNI_OnUnload(JavaVM *vm, void *reserved) {
 JNIEXPORT jboolean JNICALL
 Java_com_asn_yolov8_options_Yolov8Ncnn_loadModel(JNIEnv *env, jobject thiz, jobject assetManager,
                                                  jint modelid, jint cpugpu) {
-    if (modelid < 0 || modelid > 6 || cpugpu < 0 || cpugpu > 1) {
+    if (modelid < 0 || modelid > 8 || cpugpu < 0 || cpugpu > 1) {
         return JNI_FALSE;
     }
 
@@ -296,7 +296,7 @@ Java_com_asn_yolov8_options_Yolov8Ncnn_loadModel(JNIEnv *env, jobject thiz, jobj
                                    norm_vals[(int) 0], use_gpu);
                 __android_log_print(ANDROID_LOG_DEBUG, "ncnn", "normal");
 
-            } else if (modelid == 6 || modelid == 7) {
+            } else if (modelid == 6 || modelid == 7 || modelid ==8) {
                 if (!g_blazepose)
                     g_blazepose = new BlazePose;
                 g_blazepose->load(mgr, modeltype, use_gpu);
